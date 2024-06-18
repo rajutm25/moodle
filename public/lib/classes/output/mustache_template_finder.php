@@ -34,9 +34,10 @@ class mustache_template_finder {
      *
      * @param string $component The component to search
      * @param string $themename The current theme name
-     * @return string[] List of valid directories for templates for this compoonent. Directories are not checked for existence.
+     * @param bool $ignoreoverrides Whether to ignore theme overrides
+     * @return string[] List of valid directories for templates for this component. Directories are not checked for existence.
      */
-    public static function get_template_directories_for_component($component, $themename = '') {
+    public static function get_template_directories_for_component($component, $themename = '', $ignoreoverrides = false) {
         global $CFG, $PAGE;
 
         // Default the param.
@@ -55,26 +56,28 @@ class mustache_template_finder {
             throw new coding_exception("Component was not valid: " . s($component));
         }
 
-        // Find the parent themes.
-        $parents = [];
-        if ($themename === $PAGE->theme->name) {
-            $parents = $PAGE->theme->parents;
-        } else {
-            $themeconfig = theme_config::load($themename);
-            $parents = $themeconfig->parents;
-        }
+        if (!$ignoreoverrides) {
+            // Find the parent themes.
+            $parents = [];
+            if ($themename === $PAGE->theme->name) {
+                $parents = $PAGE->theme->parents;
+            } else {
+                $themeconfig = theme_config::load($themename);
+                $parents = $themeconfig->parents;
+            }
 
-        // First check the theme.
-        $dirs[] = $CFG->dirroot . '/theme/' . $themename . '/templates/' . $component . '/';
-        if (isset($CFG->themedir)) {
-            $dirs[] = $CFG->themedir . '/' . $themename . '/templates/' . $component . '/';
-        }
-        // Now check the parent themes.
-        // Search each of the parent themes second.
-        foreach ($parents as $parent) {
-            $dirs[] = $CFG->dirroot . '/theme/' . $parent . '/templates/' . $component . '/';
+            // First check the theme.
+            $dirs[] = $CFG->dirroot . '/theme/' . $themename . '/templates/' . $component . '/';
             if (isset($CFG->themedir)) {
-                $dirs[] = $CFG->themedir . '/' . $parent . '/templates/' . $component . '/';
+                $dirs[] = $CFG->themedir . '/' . $themename . '/templates/' . $component . '/';
+            }
+            // Now check the parent themes.
+            // Search each of the parent themes second.
+            foreach ($parents as $parent) {
+                $dirs[] = $CFG->dirroot . '/theme/' . $parent . '/templates/' . $component . '/';
+                if (isset($CFG->themedir)) {
+                    $dirs[] = $CFG->themedir . '/' . $parent . '/templates/' . $component . '/';
+                }
             }
         }
 
@@ -91,17 +94,18 @@ class mustache_template_finder {
      * @return string
      */
     public static function get_template_filepath($name, $themename = '') {
-        global $CFG, $PAGE;
-
-        if (strpos($name, '/') === false) {
+        if (!str_contains(ltrim($name, '/'), '/')) {
             throw new coding_exception('Templates names must be specified as "componentname/templatename"' .
-                                       ' (' . s($name) . ' requested) ');
+                                       ' or "/componentname/templatename" ("' . s($name) . '" requested)');
         }
 
-        [$component, $templatename] = explode('/', $name, 2);
+        [$component, $templatename] = explode('/', ltrim($name, '/'), 2);
         $component = clean_param($component, PARAM_COMPONENT);
 
-        $dirs = self::get_template_directories_for_component($component, $themename);
+        // We ignore theme overrides if the name is given in "absolute syntax", i.e., it starts with a forward slash.
+        $ignoreoverrides = str_starts_with($name, '/');
+
+        $dirs = self::get_template_directories_for_component($component, $themename, $ignoreoverrides);
 
         foreach ($dirs as $dir) {
             $candidate = $dir . $templatename . '.mustache';
