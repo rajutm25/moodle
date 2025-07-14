@@ -28,6 +28,8 @@ require_once($CFG->libdir.'/formslib.php');
 require_once($CFG->dirroot.'/user/lib.php');
 require_once('lib.php');
 
+// Load AMD JS module.
+$PAGE->requires->js_call_amd('core/forgotpassword', 'init');
 /**
  * Reset forgotten password form definition.
  *
@@ -84,7 +86,42 @@ class login_forgot_password_form extends moodleform {
 
         $errors += core_login_validate_forgot_password_data($data);
 
+        // Determine which submit button was pressed.
+        $searchbyusername = !empty($data['submitbuttonusername']);
+        $searchbyemail = !empty($data['submitbuttonemail']);
+
+        $username = trim($data['username'] ?? '');
+        $email = trim($data['email'] ?? '');
+
+        if ($searchbyusername) {
+            if ($username === '') {
+                $errors['username'] = get_string('usernamerequired');
+            }
+            // Clear the email field so it doesn't cause validation issues downstream.
+            unset($errors['email']);
+        } else if ($searchbyemail) {
+            if ($email === '') {
+                $errors['email'] = get_string('emailrequired');
+            }
+            // Clear the username field so it doesn't cause validation issues downstream.
+            unset($errors['username']);
+        }
+
         return $errors;
     }
 
+    /**
+     * Runs after data is loaded into the form.
+     *
+     * @return void
+     */
+    public function definition_after_data() {
+        $data = $this->_form->getSubmitValues();
+
+        if (!empty($data['submitbuttonusername'])) {
+            $this->_form->setConstant('email', '');
+        } else if (!empty($data['submitbuttonemail'])) {
+            $this->_form->setConstant('username', '');
+        }
+    }
 }

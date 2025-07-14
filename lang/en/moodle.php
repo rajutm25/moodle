@@ -764,6 +764,7 @@ Someone (probably you) has requested a new password for your account on \'{$a->s
 
 Unfortunately passwords cannot be reset on this site. Please contact the site administrator {$a->admin}.';
 $string['emailpasswordchangeinfosubject'] = '{$a}: Change password information';
+$string['emailrequired'] = 'Enter email';
 $string['emailresetconfirmation'] = 'Hi {$a->firstname},
 
 A password reset was requested for your account \'{$a->username}\' at {$a->sitename}.
@@ -2354,6 +2355,7 @@ $string['usernameexists'] = 'This username already exists, choose another';
 $string['usernamelowercase'] = 'Only lowercase letters allowed';
 $string['usernamenotfound'] = 'The username was not found in the database';
 $string['usernameoremail'] = 'Enter either username or email address';
+$string['usernamerequired'] = 'Enter username';
 $string['usernotconfirmed'] = 'Could not confirm {$a}';
 $string['userpic'] = 'User picture';
 $string['users'] = 'Users';
@@ -2490,6 +2492,5 @@ $string['registrationcontactyes'] = 'Yes, provide a form for other Moodlers to c
 $string['failedtaskcontexturlname'] = 'Status report';
 
 // Deprecated since Moodle 5.1.
-$string['activities_help'] = 'Activities, such as forums, quizzes and wikis, enable interactive content to be added to the course.';
 $string['maxsectionslimit'] = 'Cannot create new section as it would exceed the maximum number of sections allowed for this course ({$a}).';
 $string['resources_help'] = 'Resource types enable almost any kind of web content to be inserted into the course.';
