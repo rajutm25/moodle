@@ -2492,5 +2492,6 @@ $string['registrationcontactyes'] = 'Yes, provide a form for other Moodlers to c
 $string['failedtaskcontexturlname'] = 'Status report';
 
 // Deprecated since Moodle 5.1.
+$string['activities_help'] = 'Activities, such as forums, quizzes and wikis, enable interactive content to be added to the course.';
 $string['maxsectionslimit'] = 'Cannot create new section as it would exceed the maximum number of sections allowed for this course ({$a}).';
 $string['resources_help'] = 'Resource types enable almost any kind of web content to be inserted into the course.';
