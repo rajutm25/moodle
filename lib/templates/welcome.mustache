@@ -26,10 +26,11 @@
 }}
 {{#welcomemessage}}
 <div class="me-auto">
-    <h1 class="h2 mb-3 mt-3">
-        {{#contextheader}}{{{contextheader}}}{{/contextheader}}
-        {{^contextheader}}{{{pageheading}}}{{/contextheader}}
-    </h1>
+    {{#contextheader}}
+        <h1 class="h2 mb-3 mt-3">
+            {{{contextheader}}}
+        </h1>
+    {{/contextheader}}
 </div>
 <div class="me-auto">
     <p class="lead mb-3 mt-3">
