@@ -25,7 +25,15 @@
     }
 }}
 {{#welcomemessage}}
-<h1 class="h2 mb-3 mt-3">
-    {{.}}
-</h1>
+<div class="me-auto">
+    <h1 class="h2 mb-3 mt-3">
+        {{#contextheader}}{{{contextheader}}}{{/contextheader}}
+        {{^contextheader}}{{{pageheading}}}{{/contextheader}}
+    </h1>
+</div>
+<div class="me-auto">
+    <p class="lead mb-3 mt-3">
+        {{.}}
+    </p>
+</div>
 {{/welcomemessage}}
