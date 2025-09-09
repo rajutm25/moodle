@@ -3,30 +3,15 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2017 Justin Hileman
+ * (c) 2010-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
-/**
- * Describes a Mustache logger instance.
- *
- * This is identical to the Psr\Log\LoggerInterface.
- *
- * The message MUST be a string or object implementing __toString().
- *
- * The message MAY contain placeholders in the form: {foo} where foo
- * will be replaced by the context data in key "foo".
- *
- * The context array can contain arbitrary data, the only assumption that
- * can be made by implementors is that if an Exception instance is given
- * to produce a stack trace, it MUST be in a key named "exception".
- *
- * See https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
- * for the full interface specification.
- */
-interface Mustache_Logger
+namespace Mustache;
+
+interface Logger
 {
     /**
      * Psr\Log compatible log levels.
@@ -44,9 +29,8 @@ interface Mustache_Logger
      * System is unusable.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function emergency($message, array $context = array());
+    public function emergency($message, array $context = []);
 
     /**
      * Action must be taken immediately.
@@ -55,9 +39,8 @@ interface Mustache_Logger
      * trigger the SMS alerts and wake you up.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function alert($message, array $context = array());
+    public function alert($message, array $context = []);
 
     /**
      * Critical conditions.
@@ -65,18 +48,16 @@ interface Mustache_Logger
      * Example: Application component unavailable, unexpected exception.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function critical($message, array $context = array());
+    public function critical($message, array $context = []);
 
     /**
      * Runtime errors that do not require immediate action but should typically
      * be logged and monitored.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function error($message, array $context = array());
+    public function error($message, array $context = []);
 
     /**
      * Exceptional occurrences that are not errors.
@@ -85,17 +66,15 @@ interface Mustache_Logger
      * that are not necessarily wrong.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function warning($message, array $context = array());
+    public function warning($message, array $context = []);
 
     /**
      * Normal but significant events.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function notice($message, array $context = array());
+    public function notice($message, array $context = []);
 
     /**
      * Interesting events.
@@ -103,24 +82,21 @@ interface Mustache_Logger
      * Example: User logs in, SQL logs.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function info($message, array $context = array());
+    public function info($message, array $context = []);
 
     /**
      * Detailed debug information.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function debug($message, array $context = array());
+    public function debug($message, array $context = []);
 
     /**
      * Logs with an arbitrary level.
      *
      * @param mixed  $level
      * @param string $message
-     * @param array  $context
      */
-    public function log($level, $message, array $context = array());
+    public function log($level, $message, array $context = []);
 }

@@ -3,11 +3,15 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2017 Justin Hileman
+ * (c) 2010-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Mustache\Loader;
+
+use Mustache\Loader;
 
 /**
  * Mustache Template string Loader implementation.
@@ -19,11 +23,11 @@
  *
  * This is the default Template Loader instance used by Mustache:
  *
- *     $m = new Mustache;
+ *     $m = new \Mustache\Engine;
  *     $tpl = $m->loadTemplate('{{ foo }}');
- *     echo $tpl->render(array('foo' => 'bar')); // "bar"
+ *     echo $tpl->render(['foo' => 'bar']); // "bar"
  */
-class Mustache_Loader_StringLoader implements Mustache_Loader
+class StringLoader implements Loader
 {
     /**
      * Load a Template by source.

@@ -3,18 +3,23 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2017 Justin Hileman
+ * (c) 2010-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Mustache;
+
+use Mustache\Exception\InvalidArgumentException;
+use Mustache\Exception\SyntaxException;
 
 /**
  * Mustache Tokenizer class.
  *
  * This class is responsible for turning raw template source into a set of Mustache tokens.
  */
-class Mustache_Tokenizer
+class Tokenizer
 {
     // Finite state machine states
     const IN_TEXT     = 0;
@@ -38,7 +43,7 @@ class Mustache_Tokenizer
     const T_BLOCK_ARG    = '$arg';
 
     // Valid token types
-    private static $tagTypes = array(
+    private static $tagTypes = [
         self::T_SECTION      => true,
         self::T_INVERTED     => true,
         self::T_END_SECTION  => true,
@@ -51,11 +56,28 @@ class Mustache_Tokenizer
         self::T_UNESCAPED_2  => true,
         self::T_PRAGMA       => true,
         self::T_BLOCK_VAR    => true,
-    );
+    ];
+
+    private static $tagNames = [
+        self::T_SECTION      => 'section',
+        self::T_INVERTED     => 'inverted section',
+        self::T_END_SECTION  => 'section end',
+        self::T_COMMENT      => 'comment',
+        self::T_PARTIAL      => 'partial',
+        self::T_PARENT       => 'parent',
+        self::T_DELIM_CHANGE => 'set delimiter',
+        self::T_ESCAPED      => 'variable',
+        self::T_UNESCAPED    => 'unescaped variable',
+        self::T_UNESCAPED_2  => 'unescaped variable',
+        self::T_PRAGMA       => 'pragma',
+        self::T_BLOCK_VAR    => 'block variable',
+        self::T_BLOCK_ARG    => 'block variable',
+    ];
 
     // Token properties
     const TYPE    = 'type';
     const NAME    = 'name';
+    const DYNAMIC = 'dynamic';
     const OTAG    = 'otag';
     const CTAG    = 'ctag';
     const LINE    = 'line';
@@ -84,8 +106,8 @@ class Mustache_Tokenizer
     /**
      * Scan and tokenize template source.
      *
-     * @throws Mustache_Exception_SyntaxException when mismatched section tags are encountered
-     * @throws Mustache_Exception_InvalidArgumentException when $delimiters string is invalid
+     * @throws SyntaxException          when mismatched section tags are encountered
+     * @throws InvalidArgumentException when $delimiters string is invalid
      *
      * @param string $text       Mustache template source to tokenize
      * @param string $delimiters Optionally, pass initial opening and closing delimiters (default: empty string)
@@ -112,7 +134,7 @@ class Mustache_Tokenizer
 
         $this->reset();
 
-        if (is_string($delimiters) && $delimiters = trim($delimiters)) {
+        if (is_string($delimiters) && ($delimiters = trim($delimiters)) !== '') {
             $this->setDelimiters($delimiters);
         }
 
@@ -165,14 +187,14 @@ class Mustache_Tokenizer
                     $char = $text[$i];
                     // Test whether it's time to change tags.
                     if ($char === $this->ctagChar && substr($text, $i, $this->ctagLen) === $this->ctag) {
-                        $token = array(
+                        $token = [
                             self::TYPE  => $this->tagType,
                             self::NAME  => trim($this->buffer),
                             self::OTAG  => $this->otag,
                             self::CTAG  => $this->ctag,
                             self::LINE  => $this->line,
                             self::INDEX => ($this->tagType === self::T_END_SECTION) ? $this->seenTag - $this->otagLen : $i + $this->ctagLen,
-                        );
+                        ];
 
                         if ($this->tagType === self::T_UNESCAPED) {
                             // Clean up `{{{ tripleStache }}}` style tokens.
@@ -186,7 +208,7 @@ class Mustache_Tokenizer
                                         $token[self::LINE]
                                     );
 
-                                    throw new Mustache_Exception_SyntaxException($msg, $token);
+                                    throw new SyntaxException($msg, $token);
                                 }
                             } else {
                                 $lastName = $token[self::NAME];
@@ -199,7 +221,7 @@ class Mustache_Tokenizer
                                         $token[self::LINE]
                                     );
 
-                                    throw new Mustache_Exception_SyntaxException($msg, $token);
+                                    throw new SyntaxException($msg, $token);
                                 }
                             }
                         }
@@ -239,7 +261,7 @@ class Mustache_Tokenizer
         $this->state    = self::IN_TEXT;
         $this->tagType  = null;
         $this->buffer   = '';
-        $this->tokens   = array();
+        $this->tokens   = [];
         $this->seenTag  = false;
         $this->line     = 0;
 
@@ -258,11 +280,11 @@ class Mustache_Tokenizer
     private function flushBuffer()
     {
         if (strlen($this->buffer) > 0) {
-            $this->tokens[] = array(
+            $this->tokens[] = [
                 self::TYPE  => self::T_TEXT,
                 self::LINE  => $this->line,
                 self::VALUE => $this->buffer,
-            );
+            ];
             $this->buffer   = '';
         }
     }
@@ -270,7 +292,7 @@ class Mustache_Tokenizer
     /**
      * Change the current Mustache delimiters. Set new `otag` and `ctag` values.
      *
-     * @throws Mustache_Exception_SyntaxException when delimiter string is invalid
+     * @throws SyntaxException when delimiter string is invalid
      *
      * @param string $text  Mustache template source
      * @param int    $index Current tokenizer index
@@ -287,15 +309,15 @@ class Mustache_Tokenizer
             $this->throwUnclosedTagException();
         }
 
-        $token = array(
+        $token = [
             self::TYPE => self::T_DELIM_CHANGE,
             self::LINE => $this->line,
-        );
+        ];
 
         try {
             $this->setDelimiters(trim(substr($text, $startIndex, $closeIndex - $startIndex)));
-        } catch (Mustache_Exception_InvalidArgumentException $e) {
-            throw new Mustache_Exception_SyntaxException($e->getMessage(), $token);
+        } catch (InvalidArgumentException $e) {
+            throw new SyntaxException($e->getMessage(), $token);
         }
 
         $this->tokens[] = $token;
@@ -306,14 +328,14 @@ class Mustache_Tokenizer
     /**
      * Set the current Mustache `otag` and `ctag` delimiters.
      *
-     * @throws Mustache_Exception_InvalidArgumentException when delimiter string is invalid
+     * @throws InvalidArgumentException when delimiter string is invalid
      *
      * @param string $delimiters
      */
     private function setDelimiters($delimiters)
     {
         if (!preg_match('/^\s*(\S+)\s+(\S+)\s*$/', $delimiters, $matches)) {
-            throw new Mustache_Exception_InvalidArgumentException(sprintf('Invalid delimiters: %s', $delimiters));
+            throw new InvalidArgumentException(sprintf('Invalid delimiters: %s', $delimiters));
         }
 
         list($_, $otag, $ctag) = $matches;
@@ -348,11 +370,11 @@ class Mustache_Tokenizer
         $pragma = trim(substr($text, $index + 2, $end - $index - 2));
 
         // Pragmas are hoisted to the front of the template.
-        array_unshift($this->tokens, array(
+        array_unshift($this->tokens, [
             self::TYPE => self::T_PRAGMA,
             self::NAME => $pragma,
             self::LINE => 0,
-        ));
+        ]);
 
         return $end + $this->ctagLen - 1;
     }
@@ -366,13 +388,25 @@ class Mustache_Tokenizer
             $msg = sprintf('Unclosed tag on line %d', $this->line);
         }
 
-        throw new Mustache_Exception_SyntaxException($msg, array(
+        throw new SyntaxException($msg, [
             self::TYPE  => $this->tagType,
             self::NAME  => $name,
             self::OTAG  => $this->otag,
             self::CTAG  => $this->ctag,
             self::LINE  => $this->line,
             self::INDEX => $this->seenTag - $this->otagLen,
-        ));
+        ]);
+    }
+
+    /**
+     * Get the human readable name for a tag type.
+     *
+     * @param string $tagType One of the tokenizer T_* constants
+     *
+     * @return string
+     */
+    public static function getTagName($tagType)
+    {
+        return isset(self::$tagNames[$tagType]) ? self::$tagNames[$tagType] : 'unknown';
     }
 }

@@ -3,30 +3,39 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2017 Justin Hileman
+ * (c) 2010-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
+namespace Mustache;
+
+use Mustache\Exception\InvalidArgumentException;
+
 /**
  * Mustache Template rendering Context.
  */
-class Mustache_Context
+class Context
 {
-    private $stack      = array();
-    private $blockStack = array();
+    private $stack      = [];
+    private $blockStack = [];
+
+    private $buggyPropertyShadowing = false;
 
     /**
      * Mustache rendering Context constructor.
      *
-     * @param mixed $context Default rendering context (default: null)
+     * @param mixed $context                Default rendering context (default: null)
+     * @param bool  $buggyPropertyShadowing See Engine::getBuggyPropertyShadowing (default: false)
      */
-    public function __construct($context = null)
+    public function __construct($context = null, $buggyPropertyShadowing = false)
     {
         if ($context !== null) {
-            $this->stack = array($context);
+            $this->stack = [$context];
         }
+
+        $this->buggyPropertyShadowing = $buggyPropertyShadowing;
     }
 
     /**
@@ -106,12 +115,12 @@ class Mustache_Context
      * the initial chunk of the dotted name, each subsequent chunk is searched for only within the value of the previous
      * result. For example, given the following context stack:
      *
-     *     $data = array(
+     *     $data = [
      *         'name' => 'Fred',
-     *         'child' => array(
+     *         'child' => [
      *             'name' => 'Bob'
-     *         ),
-     *     );
+     *         ],
+     *     ];
      *
      * ... and the Mustache following template:
      *
@@ -120,22 +129,32 @@ class Mustache_Context
      * ... the `name` value is only searched for within the `child` value of the global Context, not within parent
      * Context frames.
      *
-     * @param string $id Dotted variable selector
+     * @param string $id              Dotted variable selector
+     * @param bool   $strictCallables (default: false)
      *
      * @return mixed Variable value, or '' if not found
      */
-    public function findDot($id)
+    public function findDot($id, $strictCallables = false)
     {
         $chunks = explode('.', $id);
         $first  = array_shift($chunks);
         $value  = $this->findVariableInStack($first, $this->stack);
 
+        // This wasn't really a dotted name, so we can just return the value.
+        if (empty($chunks)) {
+            return $value;
+        }
+
         foreach ($chunks as $chunk) {
-            if ($value === '') {
+            $isCallable = $strictCallables ? (is_object($value) && is_callable($value)) : (!is_string($value) && is_callable($value));
+
+            if ($isCallable) {
+                $value = $value();
+            } elseif ($value === '') {
                 return $value;
             }
 
-            $value = $this->findVariableInStack($chunk, array($value));
+            $value = $this->findVariableInStack($chunk, [$value]);
         }
 
         return $value;
@@ -148,9 +167,9 @@ class Mustache_Context
      * stack for the first value, rather than searching the whole context stack
      * and starting from there.
      *
-     * @see Mustache_Context::findDot
+     * @see Mustache\Context::findDot
      *
-     * @throws Mustache_Exception_InvalidArgumentException if given an invalid anchored dot $id
+     * @throws InvalidArgumentException if given an invalid anchored dot $id
      *
      * @param string $id Dotted variable selector
      *
@@ -161,7 +180,7 @@ class Mustache_Context
         $chunks = explode('.', $id);
         $first  = array_shift($chunks);
         if ($first !== '') {
-            throw new Mustache_Exception_InvalidArgumentException(sprintf('Unexpected id for findAnchoredDot: %s', $id));
+            throw new InvalidArgumentException(sprintf('Unexpected id for findAnchoredDot: %s', $id));
         }
 
         $value  = $this->last();
@@ -171,7 +190,7 @@ class Mustache_Context
                 return $value;
             }
 
-            $value = $this->findVariableInStack($chunk, array($value));
+            $value = $this->findVariableInStack($chunk, [$value]);
         }
 
         return $value;
@@ -198,7 +217,7 @@ class Mustache_Context
     /**
      * Helper function to find a variable in the Context stack.
      *
-     * @see Mustache_Context::find
+     * @see Mustache\Context::find
      *
      * @param string $id    Variable name
      * @param array  $stack Context stack
@@ -212,7 +231,7 @@ class Mustache_Context
 
             switch (gettype($frame)) {
                 case 'object':
-                    if (!($frame instanceof Closure)) {
+                    if (!($frame instanceof \Closure)) {
                         // Note that is_callable() *will not work here*
                         // See https://github.com/bobthecow/mustache.php/wiki/Magic-Methods
                         if (method_exists($frame, $id)) {
@@ -223,8 +242,24 @@ class Mustache_Context
                             return $frame->$id;
                         }
 
-                        if ($frame instanceof ArrayAccess && isset($frame[$id])) {
-                            return $frame[$id];
+                        // Preserve backwards compatibility with a property shadowing bug in
+                        // Mustache.php <= 2.14.2
+                        // See https://github.com/bobthecow/mustache.php/pull/410
+                        if ($this->buggyPropertyShadowing) {
+                            if ($frame instanceof \ArrayAccess && isset($frame[$id])) {
+                                return $frame[$id];
+                            }
+                        } else {
+                            if (property_exists($frame, $id)) {
+                                $rp = new \ReflectionProperty($frame, $id);
+                                if ($rp->isPublic()) {
+                                    return $frame->$id;
+                                }
+                            }
+
+                            if ($frame instanceof \ArrayAccess && $frame->offsetExists($id)) {
+                                return $frame[$id];
+                            }
                         }
                     }
                     break;

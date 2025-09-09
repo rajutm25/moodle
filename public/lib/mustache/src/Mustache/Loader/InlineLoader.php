@@ -3,11 +3,17 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2017 Justin Hileman
+ * (c) 2010-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Mustache\Loader;
+
+use Mustache\Exception\InvalidArgumentException;
+use Mustache\Exception\UnknownTemplateException;
+use Mustache\Loader;
 
 /**
  * A Mustache Template loader for inline templates.
@@ -15,7 +21,7 @@
  * With the InlineLoader, templates can be defined at the end of any PHP source
  * file:
  *
- *     $loader  = new Mustache_Loader_InlineLoader(__FILE__, __COMPILER_HALT_OFFSET__);
+ *     $loader  = new InlineLoader(__FILE__, __COMPILER_HALT_OFFSET__);
  *     $hello   = $loader->load('hello');
  *     $goodbye = $loader->load('goodbye');
  *
@@ -31,9 +37,9 @@
  *
  * The InlineLoader is well-suited to micro-frameworks such as Silex:
  *
- *     $app->register(new MustacheServiceProvider, array(
- *         'mustache.loader' => new Mustache_Loader_InlineLoader(__FILE__, __COMPILER_HALT_OFFSET__)
- *     ));
+ *     $app->register(new MustacheServiceProvider, [
+ *         'mustache.loader' => new InlineLoader(__FILE__, __COMPILER_HALT_OFFSET__)
+ *     ]);
  *
  *     $app->get('/{name}', function ($name) use ($app) {
  *         return $app['mustache']->render('hello', compact('name'));
@@ -47,7 +53,7 @@
  *     @@ hello
  *     Hello, {{ name }}!
  */
-class Mustache_Loader_InlineLoader implements Mustache_Loader
+class InlineLoader implements Loader
 {
     protected $fileName;
     protected $offset;
@@ -59,7 +65,7 @@ class Mustache_Loader_InlineLoader implements Mustache_Loader
      * The magic constants `__FILE__` and `__COMPILER_HALT_OFFSET__` are usually
      * perfectly suited to the job:
      *
-     *     $loader = new Mustache_Loader_InlineLoader(__FILE__, __COMPILER_HALT_OFFSET__);
+     *     $loader = new InlineLoader(__FILE__, __COMPILER_HALT_OFFSET__);
      *
      * Note that this only works if the loader is instantiated inside the same
      * file as the inline templates. If the templates are located in another
@@ -73,11 +79,11 @@ class Mustache_Loader_InlineLoader implements Mustache_Loader
     public function __construct($fileName, $offset)
     {
         if (!is_file($fileName)) {
-            throw new Mustache_Exception_InvalidArgumentException('InlineLoader expects a valid filename.');
+            throw new InvalidArgumentException('InlineLoader expects a valid filename.');
         }
 
         if (!is_int($offset) || $offset < 0) {
-            throw new Mustache_Exception_InvalidArgumentException('InlineLoader expects a valid file offset.');
+            throw new InvalidArgumentException('InlineLoader expects a valid file offset.');
         }
 
         $this->fileName = $fileName;
@@ -87,7 +93,7 @@ class Mustache_Loader_InlineLoader implements Mustache_Loader
     /**
      * Load a Template by name.
      *
-     * @throws Mustache_Exception_UnknownTemplateException If a template file is not found
+     * @throws UnknownTemplateException If a template file is not found
      *
      * @param string $name
      *
@@ -98,7 +104,7 @@ class Mustache_Loader_InlineLoader implements Mustache_Loader
         $this->loadTemplates();
 
         if (!array_key_exists($name, $this->templates)) {
-            throw new Mustache_Exception_UnknownTemplateException($name);
+            throw new UnknownTemplateException($name);
         }
 
         return $this->templates[$name];
@@ -110,10 +116,10 @@ class Mustache_Loader_InlineLoader implements Mustache_Loader
     protected function loadTemplates()
     {
         if ($this->templates === null) {
-            $this->templates = array();
+            $this->templates = [];
             $data = file_get_contents($this->fileName, false, null, $this->offset);
             foreach (preg_split("/^@@(?= [\w\d\.]+$)/m", $data, -1) as $chunk) {
-                if (trim($chunk)) {
+                if (trim($chunk) !== '') {
                     list($name, $content)         = explode("\n", $chunk, 2);
                     $this->templates[trim($name)] = trim($content);
                 }

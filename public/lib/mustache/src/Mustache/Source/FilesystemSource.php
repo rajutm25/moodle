@@ -3,11 +3,16 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2017 Justin Hileman
+ * (c) 2010-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Mustache\Source;
+
+use Mustache\Exception\RuntimeException;
+use Mustache\Source;
 
 /**
  * Mustache template Filesystem Source.
@@ -17,7 +22,7 @@
  * It is more suitable for production use, and is used by default in the
  * ProductionFilesystemLoader.
  */
-class Mustache_Source_FilesystemSource implements Mustache_Source
+class FilesystemSource implements Source
 {
     private $fileName;
     private $statProps;
@@ -27,7 +32,6 @@ class Mustache_Source_FilesystemSource implements Mustache_Source
      * Filesystem Source constructor.
      *
      * @param string $fileName
-     * @param array  $statProps
      */
     public function __construct($fileName, array $statProps)
     {
@@ -38,15 +42,15 @@ class Mustache_Source_FilesystemSource implements Mustache_Source
     /**
      * Get the Source key (used to generate the compiled class name).
      *
-     * @throws Mustache_Exception_RuntimeException when a source file cannot be read
+     * @throws RuntimeException when a source file cannot be read
      *
      * @return string
      */
     public function getKey()
     {
-        $chunks = array(
+        $chunks = [
             'fileName' => $this->fileName,
-        );
+        ];
 
         if (!empty($this->statProps)) {
             if (!isset($this->stat)) {
@@ -54,7 +58,7 @@ class Mustache_Source_FilesystemSource implements Mustache_Source
             }
 
             if ($this->stat === false) {
-                throw new Mustache_Exception_RuntimeException(sprintf('Failed to read source file "%s".', $this->fileName));
+                throw new RuntimeException(sprintf('Failed to read source file "%s".', $this->fileName));
             }
 
             foreach ($this->statProps as $prop) {

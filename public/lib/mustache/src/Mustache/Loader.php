@@ -3,25 +3,26 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2017 Justin Hileman
+ * (c) 2010-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
-/**
- * Mustache Template Loader interface.
- */
-interface Mustache_Loader
+namespace Mustache;
+
+use Mustache\Exception\UnknownTemplateException;
+
+interface Loader
 {
     /**
      * Load a Template by name.
      *
-     * @throws Mustache_Exception_UnknownTemplateException If a template file is not found
+     * @throws UnknownTemplateException If a template file is not found
      *
      * @param string $name
      *
-     * @return string|Mustache_Source Mustache Template source
+     * @return string|Source Mustache Template source
      */
     public function load($name);
 }

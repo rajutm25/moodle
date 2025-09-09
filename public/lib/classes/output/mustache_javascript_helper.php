@@ -44,10 +44,10 @@ class mustache_javascript_helper {
      * This function will always return an empty string because the JS is added to the page via the requirements manager.
      *
      * @param string $text The script content of the section.
-     * @param \Mustache_LambdaHelper $helper Used to render the content of this block.
+     * @param \Mustache\LambdaHelper $helper Used to render the content of this block.
      * @return string The text of the block
      */
-    public function help($text, \Mustache_LambdaHelper $helper) {
+    public function help($text, \Mustache\LambdaHelper $helper) {
         $this->page->requires->js_amd_inline($helper->render($text));
         return '';
     }

@@ -3,16 +3,20 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2017 Justin Hileman
+ * (c) 2010-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
+namespace Mustache\Exception;
+
+use Mustache\Exception;
+
 /**
  * Logic exception.
  */
-class Mustache_Exception_LogicException extends LogicException implements Mustache_Exception
+class LogicException extends \LogicException implements Exception
 {
     // This space intentionally left blank.
 }

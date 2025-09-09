@@ -3,11 +3,16 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2017 Justin Hileman
+ * (c) 2010-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Mustache\Loader;
+
+use Mustache\Exception\UnknownTemplateException;
+use Mustache\Loader;
 
 /**
  * Mustache Template array Loader implementation.
@@ -21,19 +26,19 @@
  *
  *     $tpl = $loader->load('foo'); // '{{ bar }}'
  *
- * The ArrayLoader is used internally as a partials loader by Mustache_Engine instance when an array of partials
+ * The ArrayLoader is used internally as a partials loader by Mustache\Engine instance when an array of partials
  * is set. It can also be used as a quick-and-dirty Template loader.
  */
-class Mustache_Loader_ArrayLoader implements Mustache_Loader, Mustache_Loader_MutableLoader
+class ArrayLoader implements Loader, MutableLoader
 {
     private $templates;
 
     /**
      * ArrayLoader constructor.
      *
-     * @param array $templates Associative array of Template source (default: array())
+     * @param array $templates Associative array of Template source (default: [])
      */
-    public function __construct(array $templates = array())
+    public function __construct(array $templates = [])
     {
         $this->templates = $templates;
     }
@@ -41,7 +46,7 @@ class Mustache_Loader_ArrayLoader implements Mustache_Loader, Mustache_Loader_Mu
     /**
      * Load a Template.
      *
-     * @throws Mustache_Exception_UnknownTemplateException If a template file is not found
+     * @throws UnknownTemplateException If a template file is not found
      *
      * @param string $name
      *
@@ -50,7 +55,7 @@ class Mustache_Loader_ArrayLoader implements Mustache_Loader, Mustache_Loader_Mu
     public function load($name)
     {
         if (!isset($this->templates[$name])) {
-            throw new Mustache_Exception_UnknownTemplateException($name);
+            throw new UnknownTemplateException($name);
         }
 
         return $this->templates[$name];
@@ -58,8 +63,6 @@ class Mustache_Loader_ArrayLoader implements Mustache_Loader, Mustache_Loader_Mu
 
     /**
      * Set an associative array of Template sources for this loader.
-     *
-     * @param array $templates
      */
     public function setTemplates(array $templates)
     {

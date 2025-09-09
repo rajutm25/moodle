@@ -3,11 +3,15 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2017 Justin Hileman
+ * (c) 2010-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Mustache\Logger;
+
+use Mustache\Logger;
 
 /**
  * This is a simple Logger implementation that other Loggers can inherit from.
@@ -18,17 +22,16 @@
  * reduce boilerplate code that a simple Logger that does the same thing with
  * messages regardless of the error level has to implement.
  */
-abstract class Mustache_Logger_AbstractLogger implements Mustache_Logger
+abstract class AbstractLogger implements Logger
 {
     /**
      * System is unusable.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function emergency($message, array $context = array())
+    public function emergency($message, array $context = [])
     {
-        $this->log(Mustache_Logger::EMERGENCY, $message, $context);
+        $this->log(Logger::EMERGENCY, $message, $context);
     }
 
     /**
@@ -38,11 +41,10 @@ abstract class Mustache_Logger_AbstractLogger implements Mustache_Logger
      * trigger the SMS alerts and wake you up.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function alert($message, array $context = array())
+    public function alert($message, array $context = [])
     {
-        $this->log(Mustache_Logger::ALERT, $message, $context);
+        $this->log(Logger::ALERT, $message, $context);
     }
 
     /**
@@ -51,11 +53,10 @@ abstract class Mustache_Logger_AbstractLogger implements Mustache_Logger
      * Example: Application component unavailable, unexpected exception.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function critical($message, array $context = array())
+    public function critical($message, array $context = [])
     {
-        $this->log(Mustache_Logger::CRITICAL, $message, $context);
+        $this->log(Logger::CRITICAL, $message, $context);
     }
 
     /**
@@ -63,11 +64,10 @@ abstract class Mustache_Logger_AbstractLogger implements Mustache_Logger
      * be logged and monitored.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function error($message, array $context = array())
+    public function error($message, array $context = [])
     {
-        $this->log(Mustache_Logger::ERROR, $message, $context);
+        $this->log(Logger::ERROR, $message, $context);
     }
 
     /**
@@ -77,22 +77,20 @@ abstract class Mustache_Logger_AbstractLogger implements Mustache_Logger
      * that are not necessarily wrong.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function warning($message, array $context = array())
+    public function warning($message, array $context = [])
     {
-        $this->log(Mustache_Logger::WARNING, $message, $context);
+        $this->log(Logger::WARNING, $message, $context);
     }
 
     /**
      * Normal but significant events.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function notice($message, array $context = array())
+    public function notice($message, array $context = [])
     {
-        $this->log(Mustache_Logger::NOTICE, $message, $context);
+        $this->log(Logger::NOTICE, $message, $context);
     }
 
     /**
@@ -101,21 +99,19 @@ abstract class Mustache_Logger_AbstractLogger implements Mustache_Logger
      * Example: User logs in, SQL logs.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function info($message, array $context = array())
+    public function info($message, array $context = [])
     {
-        $this->log(Mustache_Logger::INFO, $message, $context);
+        $this->log(Logger::INFO, $message, $context);
     }
 
     /**
      * Detailed debug information.
      *
      * @param string $message
-     * @param array  $context
      */
-    public function debug($message, array $context = array())
+    public function debug($message, array $context = [])
     {
-        $this->log(Mustache_Logger::DEBUG, $message, $context);
+        $this->log(Logger::DEBUG, $message, $context);
     }
 }

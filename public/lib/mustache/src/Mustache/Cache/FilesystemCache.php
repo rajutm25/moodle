@@ -3,23 +3,28 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2017 Justin Hileman
+ * (c) 2010-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Mustache\Cache;
+
+use Mustache\Exception\RuntimeException;
+use Mustache\Logger;
 
 /**
  * Mustache Cache filesystem implementation.
  *
  * A FilesystemCache instance caches Mustache Template classes from the filesystem by name:
  *
- *     $cache = new Mustache_Cache_FilesystemCache(dirname(__FILE__).'/cache');
+ *     $cache = new FilesystemCache(__DIR__.'/cache');
  *     $cache->cache($className, $compiledSource);
  *
  * The FilesystemCache benefits from any opcode caching that may be setup in your environment. So do that, k?
  */
-class Mustache_Cache_FilesystemCache extends Mustache_Cache_AbstractCache
+class FilesystemCache extends AbstractCache
 {
     private $baseDir;
     private $fileMode;
@@ -66,9 +71,9 @@ class Mustache_Cache_FilesystemCache extends Mustache_Cache_AbstractCache
         $fileName = $this->getCacheFilename($key);
 
         $this->log(
-            Mustache_Logger::DEBUG,
+            Logger::DEBUG,
             'Writing to template cache: "{fileName}"',
-            array('fileName' => $fileName)
+            ['fileName' => $fileName]
         );
 
         $this->writeFile($fileName, $value);
@@ -91,7 +96,7 @@ class Mustache_Cache_FilesystemCache extends Mustache_Cache_AbstractCache
     /**
      * Create cache directory.
      *
-     * @throws Mustache_Exception_RuntimeException If unable to create directory
+     * @throws RuntimeException If unable to create directory
      *
      * @param string $fileName
      *
@@ -102,15 +107,15 @@ class Mustache_Cache_FilesystemCache extends Mustache_Cache_AbstractCache
         $dirName = dirname($fileName);
         if (!is_dir($dirName)) {
             $this->log(
-                Mustache_Logger::INFO,
+                Logger::INFO,
                 'Creating Mustache template cache directory: "{dirName}"',
-                array('dirName' => $dirName)
+                ['dirName' => $dirName]
             );
 
             @mkdir($dirName, 0777, true);
             // @codeCoverageIgnoreStart
             if (!is_dir($dirName)) {
-                throw new Mustache_Exception_RuntimeException(sprintf('Failed to create cache directory "%s".', $dirName));
+                throw new RuntimeException(sprintf('Failed to create cache directory "%s".', $dirName));
             }
             // @codeCoverageIgnoreEnd
         }
@@ -121,7 +126,7 @@ class Mustache_Cache_FilesystemCache extends Mustache_Cache_AbstractCache
     /**
      * Write cache file.
      *
-     * @throws Mustache_Exception_RuntimeException If unable to write file
+     * @throws RuntimeException If unable to write file
      *
      * @param string $fileName
      * @param string $value
@@ -131,9 +136,9 @@ class Mustache_Cache_FilesystemCache extends Mustache_Cache_AbstractCache
         $dirName = $this->buildDirectoryForFilename($fileName);
 
         $this->log(
-            Mustache_Logger::DEBUG,
+            Logger::DEBUG,
             'Caching compiled template to "{fileName}"',
-            array('fileName' => $fileName)
+            ['fileName' => $fileName]
         );
 
         $tempFile = tempnam($dirName, basename($fileName));
@@ -147,15 +152,15 @@ class Mustache_Cache_FilesystemCache extends Mustache_Cache_AbstractCache
 
             // @codeCoverageIgnoreStart
             $this->log(
-                Mustache_Logger::ERROR,
+                Logger::ERROR,
                 'Unable to rename Mustache temp cache file: "{tempName}" -> "{fileName}"',
-                array('tempName' => $tempFile, 'fileName' => $fileName)
+                ['tempName' => $tempFile, 'fileName' => $fileName]
             );
             // @codeCoverageIgnoreEnd
         }
 
         // @codeCoverageIgnoreStart
-        throw new Mustache_Exception_RuntimeException(sprintf('Failed to write cache file "%s".', $fileName));
+        throw new RuntimeException(sprintf('Failed to write cache file "%s".', $fileName));
         // @codeCoverageIgnoreEnd
     }
 }

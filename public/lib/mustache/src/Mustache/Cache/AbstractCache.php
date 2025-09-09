@@ -3,11 +3,18 @@
 /*
  * This file is part of Mustache.php.
  *
- * (c) 2010-2017 Justin Hileman
+ * (c) 2010-2025 Justin Hileman
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Mustache\Cache;
+
+use Mustache\Cache;
+use Mustache\Exception\InvalidArgumentException;
+use Mustache\Logger;
+use Psr\Log\LoggerInterface;
 
 /**
  * Abstract Mustache Cache class.
@@ -16,14 +23,14 @@
  *
  * @abstract
  */
-abstract class Mustache_Cache_AbstractCache implements Mustache_Cache
+abstract class AbstractCache implements Cache
 {
     private $logger = null;
 
     /**
      * Get the current logger instance.
      *
-     * @return Mustache_Logger|Psr\Log\LoggerInterface
+     * @return Logger|LoggerInterface
      */
     public function getLogger()
     {
@@ -33,12 +40,13 @@ abstract class Mustache_Cache_AbstractCache implements Mustache_Cache
     /**
      * Set a logger instance.
      *
-     * @param Mustache_Logger|Psr\Log\LoggerInterface $logger
+     * @param Logger|LoggerInterface $logger
      */
     public function setLogger($logger = null)
     {
-        if ($logger !== null && !($logger instanceof Mustache_Logger || is_a($logger, 'Psr\\Log\\LoggerInterface'))) {
-            throw new Mustache_Exception_InvalidArgumentException('Expected an instance of Mustache_Logger or Psr\\Log\\LoggerInterface.');
+        // n.b. this uses `is_a` to prevent a dependency on Psr\Log
+        if ($logger !== null && !$logger instanceof Logger && !is_a($logger, 'Psr\\Log\\LoggerInterface')) {
+            throw new InvalidArgumentException('Expected an instance of Mustache\\Logger or Psr\\Log\\LoggerInterface.');
         }
 
         $this->logger = $logger;
@@ -51,7 +59,7 @@ abstract class Mustache_Cache_AbstractCache implements Mustache_Cache
      * @param string $message The log message
      * @param array  $context The log context
      */
-    protected function log($level, $message, array $context = array())
+    protected function log($level, $message, array $context = [])
     {
         if (isset($this->logger)) {
             $this->logger->log($level, $message, $context);
