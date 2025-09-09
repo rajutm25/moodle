@@ -44,7 +44,10 @@ class mustache_string_helper {
      * @param Mustache\LambdaHelper $helper Used to render nested mustache variables.
      * @return string
      */
-    public function str($text, Mustache\LambdaHelper $helper) {
+    public function str(string $text = '',  Mustache\LambdaHelper  $helper = null): string {
+        if ($helper === null) {
+            return '';
+        }
         // Split the text into an array of variables.
         $key = strtok($text, ",");
         $key = trim($key);
