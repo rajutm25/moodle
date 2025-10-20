@@ -19,9 +19,9 @@ namespace aiplacement_assignfeedback;
 use core_ai\aiactions\summarise_text;
 use core_ai\aiactions\generate_text;
 use core_ai\manager;
-
+require_once($CFG->dirroot.'/ai/placement/assignfeedback/lib.php');
 /**
- * AI Placement course assist utils.
+ * AI Placement course module assist utils.
  *
  * @package    aiplacement_assignfeedback
  * @copyright  2025 Raju Thummoji <rajutummoji@gmail.com>
@@ -29,34 +29,40 @@ use core_ai\manager;
  */
 class utils {
     /**
-     * Check if AI Placement course assist is available for the context.
+     * Check if AI Placement course module assist is available for the context.
      *
      * @param \context $context The context.
-     * @return bool True if AI Placement course assist is available, false otherwise.
+     * @return bool True if AI Placement course module assist is available, false otherwise.
      */
-    public static function is_assignfeedback_available(\context $context): bool {
+    public static function is_assignfeedback_available(\context $context){
         [$plugintype, $pluginname] = explode('_', \core_component::normalize_componentname('aiplacement_assignfeedback'), 2);
         $manager = \core_plugin_manager::resolve_plugininfo_class($plugintype);
         if (!$manager::is_plugin_enabled($pluginname)) {
             return false;
         }
         $manager = \core\di::get(manager::class);
-        $providers = $manager->get_providers_for_actions([summarise_text::class], true);
         $gproviders = $manager->get_providers_for_actions([generate_text::class], true);
         if (
             !has_any_capability(['aiplacement/assignfeedback:usefeedback',
             'aiplacement/assignfeedback:usegrade',
             'aiplacement/assignfeedback:usecontentdetector'], $context)
-            || !$manager->is_action_available(summarise_text::class)
-            || !$manager->is_action_enabled('aiplacement_assignfeedback', summarise_text::class)
             || !$manager->is_action_available(generate_text::class)
             || !$manager->is_action_enabled('aiplacement_assignfeedback', generate_text::class)
-            || empty($providers[summarise_text::class])
             || empty($gproviders[generate_text::class])
         ) {
             return false;
         }
 
-        return true;
+        $assignment=aiplacement_assignfeedback_fetch_assignment_details($context);
+
+        if($assignment){
+            if($assignment['onlinetext_enabled']==0){
+                return false;
+            }
+        }else{
+            return false;
+        }
+
+        return $assignment;
     }
 }

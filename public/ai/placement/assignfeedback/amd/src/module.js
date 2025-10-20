@@ -28,10 +28,10 @@ import Notification from 'core/notification';
 /**
  * Initialize the module
  *
- * @param {number} courseId The course ID
+ * @param {number} moduleid The module ID
  * @param {Object} capabilities The user capabilities
  */
-export const init = (courseId, capabilities) => {
+export const init = (moduleid, capabilities) => {
     // Create context menu element
     const menuHtml = `
         <div class="assignfeedback-menu">
@@ -133,7 +133,7 @@ export const init = (courseId, capabilities) => {
                     args: {
                         text: text,
                         action: action,
-                        courseid: courseId
+                        moduleid: moduleid
                     }
                 }])[0];
                 return result.result;

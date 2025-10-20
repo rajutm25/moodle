@@ -27,8 +27,8 @@ defined('MOODLE_INTERNAL') || die();
 $capabilities = [
     'aiplacement/assignfeedback:usefeedback' => [
         'riskbitmask' => RISK_SPAM,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
         'archetypes' => [
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
@@ -37,8 +37,8 @@ $capabilities = [
     ],
     'aiplacement/assignfeedback:usegrade' => [
         'riskbitmask' => RISK_SPAM,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
         'archetypes' => [
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
@@ -47,8 +47,8 @@ $capabilities = [
     ],
     'aiplacement/assignfeedback:usecontentdetector' => [
         'riskbitmask' => RISK_SPAM,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
         'archetypes' => [
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,

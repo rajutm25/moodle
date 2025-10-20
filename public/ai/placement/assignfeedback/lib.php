@@ -22,44 +22,54 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
- * Inject JavaScript into course pages
- *
- * @param moodle_page $page The current page
- */
-function aiplacement_assignfeedback_before_standard_html_head_generation() {
-    global $COURSE, $PAGE;
-    $page = $PAGE;echo "a";die;
-    $available = \aiplacement_assignfeedback\utils::is_assignfeedback_available($page->context);
-    if (!$available) {
-     
-            return; // No need to inject if the feature is not available.
+
+function aiplacement_assignfeedback_fetch_assignment_details(\context $context) {
+    global $CFG,$DB;
+
+    require_once($CFG->dirroot . '/mod/assign/locallib.php');
+
+    $returnarray=array();
+
+    if ($context->contextlevel == CONTEXT_MODULE) {
+        $cm = get_coursemodule_from_id('', $context->instanceid, 0, false, MUST_EXIST);
+        if ($cm->modname === 'assign') {
+
+            $assignrecord = $DB->get_record('assign', ['id' => $cm->instance], '*', MUST_EXIST);
+            $assignname = $assignrecord->name;
+
+            $gradeitem = $DB->get_record('grade_items', [
+                'iteminstance' => $assignrecord->id,
+                'itemmodule' => 'assign',
+                'courseid' => $cm->course
+            ], 'grademax');
+            $maxgrade = $gradeitem->grademax ?? null;
+
+            $sql = "SELECT 1
+                    FROM {assign_plugin_config}
+                    WHERE assignment = :assignment
+                    AND " . $DB->sql_compare_text('plugin') . " = :plugin
+                    AND " . $DB->sql_compare_text('subtype') . " = :subtype
+                    AND name = :name
+                    AND value = :value";
+
+            $params = [
+                'assignment' => $assignrecord->id,
+                'plugin' => 'onlinetext',
+                'subtype' => 'assignsubmission',
+                'name' => 'enabled',
+                'value' => 1
+            ];
+
+            $plugin_enabled = $DB->record_exists_sql($sql, $params);
+
+            $returnarray['moduleinstanceid']=$cm->instance;
+            $returnarray['assignment']=$assignname;
+            $returnarray['maxgrade']=$maxgrade;
+            $returnarray['onlinetext_enabled']=$plugin_enabled ? 1 : 0;
+
+        } 
     }
-    if ($page->context->contextlevel === CONTEXT_COURSE ||
-        $page->context->contextlevel === CONTEXT_MODULE) {
-        // Check capabilities.
-        $capabilities = [
-            'feedback' => has_capability('aiplacement/assignfeedback:usefeedback', $page->context),
-            'grade' => has_capability('aiplacement/assignfeedback:usegrade', $page->context),
-            'contentdetector' => has_capability('aiplacement/assignfeedback:usecontentdetector', $page->context),
-        ];
-        // Only proceed if user has at least one capability.
-        if (array_filter($capabilities)) {
-            // Add required JavaScript.
-            $page->requires->jquery();
-            $page->requires->js_call_amd('aiplacement_assignfeedback/module', 'init', [
-                $COURSE->id,
-                $capabilities,
-            ]);
-            // Add required strings.
-            $page->requires->strings_for_js([
-                'feedback',
-                'grade',
-                'contentdetector',
-                'loading',
-                'error',
-                'poweredby',
-            ], 'aiplacement_assignfeedback');
-        }
-    }
+
+    return $returnarray;
+
 }

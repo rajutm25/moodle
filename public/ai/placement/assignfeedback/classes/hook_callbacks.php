@@ -27,20 +27,19 @@ use core\hook\output\before_standard_head_html_generation;
  */
 class hook_callbacks {
     /**
-     * Bootstrap the course assist UI.
+     * Bootstrap the course module assist UI.
      *
      * @param before_footer_html_generation $hook
      */
     public static function before_standard_head_html_generation(before_standard_head_html_generation $hook): void {
         global $COURSE, $PAGE;
-        $available = \aiplacement_assignfeedback\utils::is_assignfeedback_available($PAGE->context);
-        if (!$available) {
-            return; // No need to inject if the feature is not available.
-        }
-        if (
-            $PAGE->context->contextlevel === CONTEXT_COURSE ||
-            $PAGE->context->contextlevel === CONTEXT_MODULE
-        ) {
+
+        if ($PAGE->context->contextlevel === CONTEXT_MODULE) {
+
+            $assignment = \aiplacement_assignfeedback\utils::is_assignfeedback_available($PAGE->context);
+            if (!$assignment) {
+                return; // No need to inject if the feature is not available.
+            }
             // Check capabilities.
             $capabilities = [
                 'feedback' => has_capability('aiplacement/assignfeedback:usefeedback', $PAGE->context),
@@ -52,7 +51,7 @@ class hook_callbacks {
                 // Add required JavaScript.
                 $PAGE->requires->jquery();
                 $PAGE->requires->js_call_amd('aiplacement_assignfeedback/module', 'init', [
-                    $COURSE->id,
+                    $assignment['moduleinstanceid'],
                     $capabilities,
                 ]);
                 // Add required strings.
